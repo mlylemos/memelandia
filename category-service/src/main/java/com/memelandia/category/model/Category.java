@@ -1,39 +1,37 @@
-package com.memelandia.user.model;
+package com.memelandia.category.model;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "users")
-public class User {
+@Table(name = "categories")
+public class Category {
     
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     
     @NotBlank(message = "Nome é obrigatório")
-    @Column(name = "name", nullable = false)
+    @Column(name = "name", nullable = false, unique = true)
     private String name;
     
-    @NotBlank(message = "Email é obrigatório")
-    @Email(message = "Email deve ser válido")
-    @Column(name = "email", nullable = false, unique = true)
-    private String email;
+    @NotBlank(message = "Descrição é obrigatória")
+    @Column(name = "description", nullable = false)
+    private String description;
     
     @NotNull
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
     
-    public User() {
+    public Category() {
         this.createdAt = LocalDateTime.now();
     }
     
-    public User(String name, String email) {
+    public Category(String name, String description) {
         this.name = name;
-        this.email = email;
+        this.description = description;
         this.createdAt = LocalDateTime.now();
     }
     
@@ -53,12 +51,12 @@ public class User {
         this.name = name;
     }
     
-    public String getEmail() {
-        return email;
+    public String getDescription() {
+        return description;
     }
     
-    public void setEmail(String email) {
-        this.email = email;
+    public void setDescription(String description) {
+        this.description = description;
     }
     
     public LocalDateTime getCreatedAt() {

@@ -1,28 +1,26 @@
-package com.memelandia.user.dto;
+package com.memelandia.category.dto;
 
-import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import java.time.LocalDateTime;
 
-public class UserDTO {
+public class CategoryDTO {
     
     private Long id;
     
     @NotBlank(message = "Nome é obrigatório")
     private String name;
     
-    @NotBlank(message = "Email é obrigatório")
-    @Email(message = "Email deve ser válido")
-    private String email;
+    @NotBlank(message = "Descrição é obrigatória")
+    private String description;
     
     private LocalDateTime createdAt;
     
-    public UserDTO() {}
+    public CategoryDTO() {}
     
-    public UserDTO(Long id, String name, String email, LocalDateTime createdAt) {
+    public CategoryDTO(Long id, String name, String description, LocalDateTime createdAt) {
         this.id = id;
         this.name = name;
-        this.email = email;
+        this.description = description;
         this.createdAt = createdAt;
     }
     
@@ -42,12 +40,12 @@ public class UserDTO {
         this.name = name;
     }
     
-    public String getEmail() {
-        return email;
+    public String getDescription() {
+        return description;
     }
     
-    public void setEmail(String email) {
-        this.email = email;
+    public void setDescription(String description) {
+        this.description = description;
     }
     
     public LocalDateTime getCreatedAt() {

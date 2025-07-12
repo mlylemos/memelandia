@@ -7,15 +7,13 @@ import com.memelandia.user.repository.UserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
-@Transactional
 public class UserService {
     
     private static final Logger logger = LoggerFactory.getLogger(UserService.class);
@@ -23,65 +21,56 @@ public class UserService {
     @Autowired
     private UserRepository userRepository;
     
-    public UserDTO createUser(CreateUserRequest request) {
-        logger.info("Criando usuário com email: {}", request.email());
+    public List<UserDTO> findAll() {
+        logger.info("Buscando todos os usuários");
+        List<User> users = userRepository.findAll();
+        return users.stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+    }
+    
+    public Optional<UserDTO> findById(Long id) {
+        logger.info("Buscando usuário por ID: {}", id);
+        return userRepository.findById(id)
+                .map(this::convertToDTO);
+    }
+    
+    public UserDTO create(CreateUserRequest request) {
+        logger.info("Criando novo usuário com email: {}", request.getEmail());
         
-        if (userRepository.existsByEmail(request.email())) {
-            logger.warn("Tentativa de criar usuário com email já existente: {}", request.email());
-            throw new IllegalArgumentException("E-mail já cadastrado: " + request.email());
+        if (userRepository.existsByEmail(request.getEmail())) {
+            logger.warn("Tentativa de criar usuário com email já existente: {}", request.getEmail());
+            throw new RuntimeException("Email já está em uso");
         }
         
-        User user = new User(request.name(), request.email());
+        User user = new User(request.getName(), request.getEmail());
         User savedUser = userRepository.save(user);
         
-        logger.info("Usuário criado com sucesso. ID: {}, Email: {}", savedUser.getId(), savedUser.getEmail());
-        
-        return mapToDTO(savedUser);
+        logger.info("Usuário criado com sucesso. ID: {}", savedUser.getId());
+        return convertToDTO(savedUser);
     }
     
-    @Transactional(readOnly = true)
-    public Optional<UserDTO> findById(Long id) {
-        logger.debug("Buscando usuário por ID: {}", id);
-        
-        return userRepository.findById(id)
-                .map(this::mapToDTO);
-    }
-    
-    @Transactional(readOnly = true)
-    public Optional<UserDTO> findByEmail(String email) {
-        logger.debug("Buscando usuário por email: {}", email);
-        
-        return userRepository.findByEmail(email)
-                .map(this::mapToDTO);
-    }
-    
-    @Transactional(readOnly = true)
-    public Page<UserDTO> findAll(Pageable pageable) {
-        logger.debug("Buscando todos os usuários. Página: {}, Tamanho: {}", 
-                     pageable.getPageNumber(), pageable.getPageSize());
-        
-        return userRepository.findAll(pageable)
-                .map(this::mapToDTO);
-    }
-    
-    @Transactional(readOnly = true)
     public boolean existsById(Long id) {
-        logger.debug("Verificando existência do usuário com ID: {}", id);
+        logger.info("Verificando existência do usuário com ID: {}", id);
         return userRepository.existsById(id);
     }
     
-    @Transactional(readOnly = true)
-    public long countTotalUsers() {
-        return userRepository.countTotalUsers();
+    public void deleteById(Long id) {
+        logger.info("Deletando usuário com ID: {}", id);
+        if (!userRepository.existsById(id)) {
+            logger.warn("Tentativa de deletar usuário inexistente com ID: {}", id);
+            throw new RuntimeException("Usuário não encontrado");
+        }
+        userRepository.deleteById(id);
+        logger.info("Usuário deletado com sucesso. ID: {}", id);
     }
     
-    private UserDTO mapToDTO(User user) {
+    private UserDTO convertToDTO(User user) {
         return new UserDTO(
                 user.getId(),
                 user.getName(),
                 user.getEmail(),
-                user.getCreatedAt(),
-                user.getUpdatedAt()
+                user.getCreatedAt()
         );
     }
 }

@@ -12,10 +12,10 @@
     </parent>
     
     <groupId>com.memelandia</groupId>
-    <artifactId>user-service</artifactId>
+    <artifactId>category-service</artifactId>
     <version>1.0.0</version>
-    <name>user-service</name>
-    <description>User Service para Memelandia</description>
+    <name>category-service</name>
+    <description>Category Service para Memelandia</description>
     
     <properties>
         <java.version>21</java.version>
