@@ -23,6 +23,7 @@
         <module>user-service</module>
         <module>category-service</module>
         <module>meme-service</module>
+        <module>shared-config</module>
     </modules>
 
     <dependencyManagement>

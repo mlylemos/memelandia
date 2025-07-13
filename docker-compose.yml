@@ -1,0 +1,102 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15
+    container_name: memelandia-postgres
+    environment:
+      POSTGRES_DB: memelandia
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+    networks:
+      - memelandia-network
+
+  user-service:
+    build: ./user-service
+    container_name: memelandia-user-service
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      - DB_USER=postgres
+      - DB_PASSWORD=postgres
+      - DB_HOST=postgres
+    ports:
+      - "8081:8081"
+    depends_on:
+      - postgres
+    networks:
+      - memelandia-network
+    volumes:
+      - ./logs:/app/logs
+
+  category-service:
+    build: ./category-service
+    container_name: memelandia-category-service
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      - DB_USER=postgres
+      - DB_PASSWORD=postgres
+      - DB_HOST=postgres
+    ports:
+      - "8082:8082"
+    depends_on:
+      - postgres
+    networks:
+      - memelandia-network
+    volumes:
+      - ./logs:/app/logs
+
+  meme-service:
+    build: ./meme-service
+    container_name: memelandia-meme-service
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      - DB_USER=postgres
+      - DB_PASSWORD=postgres
+      - DB_HOST=postgres
+      - USER_SERVICE_URL=http://user-service:8081
+      - CATEGORY_SERVICE_URL=http://category-service:8082
+    ports:
+      - "8083:8083"
+    depends_on:
+      - postgres
+      - user-service
+      - category-service
+    networks:
+      - memelandia-network
+    volumes:
+      - ./logs:/app/logs
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: memelandia-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    networks:
+      - memelandia-network
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: memelandia-grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - grafana_data:/var/lib/grafana
+    networks:
+      - memelandia-network
+
+volumes:
+  postgres_data:
+  grafana_data:
+
+networks:
+  memelandia-network:
+    driver: bridge
