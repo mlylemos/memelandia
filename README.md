@@ -25,7 +25,7 @@ memelandia-parent/
    - Java 17+ instalado
    - Maven 3.8+
 
-2. **Suba os serviços com Docker Compose**:
+2. **Suba os serviços com Docker Compose. Abra o aplicativo Docker Compose e execute o seguinte código no terminal da pasta do projeto**:
 
 ```bash
 docker-compose up --build
@@ -33,9 +33,9 @@ docker-compose up --build
 
 3. Acesse os serviços em:
 
-- User Service: `http://localhost:8081`
-- Category Service: `http://localhost:8082`
-- Meme Service: `http://localhost:8083`
+- User Service: `http://localhost:8081/api/users`
+- Category Service: `http://localhost:8082/api/categories`
+- Meme Service: `http://localhost:8083/memes`
 - Prometheus: `http://localhost:9090`
 
 ## 🧪 Executando Testes
