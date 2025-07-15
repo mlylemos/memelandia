@@ -1,0 +1,22 @@
+<configuration>
+  <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
+  <springProperty scope="context" name="LOG_PATTERN" source="logging.pattern.console"/>
+
+  <appender name="jsonConsole" class="ch.qos.logback.core.ConsoleAppender">
+    <encoder class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
+      <providers>
+        <timestamp/>
+        <loggerName/>
+        <threadName/>
+        <logLevel/>
+        <message/>
+        <mdc/>
+        <stackTrace/>
+      </providers>
+    </encoder>
+  </appender>
+
+  <root level="INFO">
+    <appender-ref ref="jsonConsole"/>
+  </root>
+</configuration>

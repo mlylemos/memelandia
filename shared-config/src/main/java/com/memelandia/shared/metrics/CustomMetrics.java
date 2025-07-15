@@ -8,12 +8,15 @@ import org.springframework.stereotype.Component;
 @Component
 public class CustomMetrics {
     
+    private final MeterRegistry meterRegistry;
     private final Counter requestCounter;
     private final Counter errorCounter;
     private final Timer requestTimer;
     private final Counter businessOperationCounter;
     
     public CustomMetrics(MeterRegistry meterRegistry) {
+        this.meterRegistry = meterRegistry;
+
         this.requestCounter = Counter.builder("http_requests_total")
                 .description("Total number of HTTP requests")
                 .tag("service", getServiceName())
@@ -56,7 +59,7 @@ public class CustomMetrics {
                 .description("Total number of business operations")
                 .tag("service", getServiceName())
                 .tag("operation", operation)
-                .register(requestCounter.getId().getMeterRegistry())
+                .register(meterRegistry)
                 .increment();
     }
     

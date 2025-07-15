@@ -1,0 +1,5 @@
+com\memelandia\shared\metrics\CustomMetrics.class
+com\memelandia\shared\config\WebConfig.class
+com\memelandia\shared\GlobalExceptionHandler.class
+com\memelandia\shared\config\RequestLoggingInterceptor.class
+com\memelandia\shared\GlobalExceptionHandler$ErrorDTO.class

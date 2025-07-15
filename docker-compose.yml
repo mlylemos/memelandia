@@ -1,102 +1,147 @@
 version: '3.8'
 
+networks:
+  memelandia-net:
+
+volumes:
+  userdb-data:
+  categorydb-data:
+  memedb-data:
+  prometheus-data:
+  grafana-data:
+
 services:
-  postgres:
+  db-user:
     image: postgres:15
-    container_name: memelandia-postgres
     environment:
-      POSTGRES_DB: memelandia
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: userdb
+      POSTGRES_USER: ebac
+      POSTGRES_PASSWORD: ebac
     ports:
       - "5432:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
-      - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+      - userdb-data:/var/lib/postgresql/data
     networks:
-      - memelandia-network
+      - memelandia-net
+    restart: always
+
+  db-category:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: categorydb
+      POSTGRES_USER: ebac
+      POSTGRES_PASSWORD: ebac
+    ports:
+      - "5433:5432"
+    volumes:
+      - categorydb-data:/var/lib/postgresql/data
+    networks:
+      - memelandia-net
+    restart: always
+
+  db-meme:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: memedb
+      POSTGRES_USER: ebac
+      POSTGRES_PASSWORD: ebac
+    ports:
+      - "5434:5432"
+    volumes:
+      - memedb-data:/var/lib/postgresql/data
+    networks:
+      - memelandia-net
+    restart: always
 
   user-service:
     build: ./user-service
-    container_name: memelandia-user-service
-    environment:
-      - SPRING_PROFILES_ACTIVE=prod
-      - DB_USER=postgres
-      - DB_PASSWORD=postgres
-      - DB_HOST=postgres
     ports:
       - "8081:8081"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db-user:5432/userdb
+      SPRING_DATASOURCE_USERNAME: ebac
+      SPRING_DATASOURCE_PASSWORD: ebac
+      MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE: health,info,prometheus
+      MANAGEMENT_ENDPOINT_HEALTH_PROBES_ENABLED: 'true'
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8081/actuator/health || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
     depends_on:
-      - postgres
+      - db-user
     networks:
-      - memelandia-network
-    volumes:
-      - ./logs:/app/logs
+      - memelandia-net
+    restart: on-failure
 
   category-service:
     build: ./category-service
-    container_name: memelandia-category-service
-    environment:
-      - SPRING_PROFILES_ACTIVE=prod
-      - DB_USER=postgres
-      - DB_PASSWORD=postgres
-      - DB_HOST=postgres
     ports:
       - "8082:8082"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db-category:5432/categorydb
+      SPRING_DATASOURCE_USERNAME: ebac
+      SPRING_DATASOURCE_PASSWORD: ebac
+      MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE: health,info,prometheus
+      MANAGEMENT_ENDPOINT_HEALTH_PROBES_ENABLED: 'true'
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8082/actuator/health || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
     depends_on:
-      - postgres
+      - db-category
     networks:
-      - memelandia-network
-    volumes:
-      - ./logs:/app/logs
+      - memelandia-net
+    restart: on-failure
 
   meme-service:
     build: ./meme-service
-    container_name: memelandia-meme-service
-    environment:
-      - SPRING_PROFILES_ACTIVE=prod
-      - DB_USER=postgres
-      - DB_PASSWORD=postgres
-      - DB_HOST=postgres
-      - USER_SERVICE_URL=http://user-service:8081
-      - CATEGORY_SERVICE_URL=http://category-service:8082
     ports:
       - "8083:8083"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db-meme:5432/memedb
+      SPRING_DATASOURCE_USERNAME: ebac
+      SPRING_DATASOURCE_PASSWORD: ebac
+      MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE: health,info,prometheus
+      MANAGEMENT_ENDPOINT_HEALTH_PROBES_ENABLED: 'true'
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8083/actuator/health || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
     depends_on:
-      - postgres
-      - user-service
-      - category-service
+      - db-meme
     networks:
-      - memelandia-network
-    volumes:
-      - ./logs:/app/logs
+      - memelandia-net
+    restart: on-failure
 
   prometheus:
     image: prom/prometheus:latest
-    container_name: memelandia-prometheus
+    container_name: prometheus
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
     ports:
       - "9090:9090"
-    volumes:
-      - ./prometheus.yml:/etc/prometheus/prometheus.yml
     networks:
-      - memelandia-network
+      - memelandia-net
+    restart: unless-stopped
 
   grafana:
     image: grafana/grafana:latest
-    container_name: memelandia-grafana
+    container_name: grafana
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: your_admin_password_here
+    volumes:
+      - grafana-data:/var/lib/grafana
     ports:
       - "3000:3000"
-    environment:
-      - GF_SECURITY_ADMIN_PASSWORD=admin
-    volumes:
-      - grafana_data:/var/lib/grafana
+    depends_on:
+      - prometheus
     networks:
-      - memelandia-network
-
-volumes:
-  postgres_data:
-  grafana_data:
-
-networks:
-  memelandia-network:
-    driver: bridge
+      - memelandia-net
+    restart: unless-stopped
