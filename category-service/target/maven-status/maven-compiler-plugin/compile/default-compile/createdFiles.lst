@@ -1,9 +1,0 @@
-com\memelandia\category\dto\CategoryDTO.class
-com\memelandia\category\GlobalExceptionHandlerC.class
-com\memelandia\category\CategoryServiceApplication.class
-com\memelandia\category\model\Category.class
-com\memelandia\category\service\CategoryService.class
-com\memelandia\category\dto\CreateCategoryRequest.class
-com\memelandia\category\GlobalExceptionHandlerC$ApiError.class
-com\memelandia\category\repository\CategoryRepository.class
-com\memelandia\category\controller\CategoryController.class
